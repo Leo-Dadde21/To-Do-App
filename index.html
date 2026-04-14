@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>To-Do-App</title>
+
+<style>
+    /* Variáveis - Modo Claro */
+    :root {
+        --bg-gradient: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+        --container-bg: rgba(244, 247, 249, 0.95);
+        --texto: #2c3e50;
+        --texto-secundario: #5a7d9a;
+        --input-bg: #ffffff;
+        --input-border: #e0e6ed;
+        
+        --bg-alta: #ffcccb; 
+        --text-alta: #842029;
+        --bg-media: #ffe4b3; 
+        --text-media: #664d03;
+        --bg-baixa: #c8e6c9; 
+        --text-baixa: #0f5132;
+        --btn-acao: rgba(255, 255, 255, 0.6);
+        --btn-acao-hover: rgba(255, 255, 255, 0.9);
+        
+        --chip-inativo: #e2e8f0;
+        --text-chip-inativo: #64748b;
+    }
+
+    /* Variáveis - Modo Escuro */
+    [data-theme="dark"] {
+        --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        --container-bg: #1e293b;
+        --texto: #f8fafc;
+        --texto-secundario: #94a3b8;
+        --input-bg: #334155;
+        --input-border: #475569;
+        
+        --bg-alta: #451a20; 
+        --text-alta: #fca5a5;
+        --bg-media: #4d3106; 
+        --text-media: #fcd34d;
+        --bg-baixa: #143620; 
+        --text-baixa: #86efac;
+        --btn-acao: rgba(0, 0, 0, 0.3);
+        --btn-acao-hover: rgba(0, 0, 0, 0.6);
+
+        --chip-inativo: #334155;
+        --text-chip-inativo: #94a3b8;
+    }
+
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg-gradient);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: var(--texto);
+        transition: background 0.5s ease, color 0.5s ease;
+    }
+
+    .container {
+        background: var(--container-bg);
+        padding: 30px;
+        border-radius: 20px; 
+        width: 90%;
+        max-width: 450px; 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        transition: max-width 0.4s ease, background-color 0.5s ease;
+        margin: 20px;
+    }
+
+    .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    h1 { margin: 0; font-weight: 300; color: var(--texto-secundario); font-size: 1.5rem; }
+    
+    .task-counter {
+        background: #3b82f6; color: white; padding: 4px 12px;
+        border-radius: 20px; font-size: 0.8rem; font-weight: bold;
+    }
+
+    .theme-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; transition: transform 0.3s; }
+    .theme-btn:hover { transform: scale(1.1); }
+
+    .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+
+    input, select {
+        width: 100%; padding: 12px; border-radius: 12px;
+        border: 1px solid var(--input-border); background-color: var(--input-bg);
+        color: var(--texto); box-sizing: border-box; outline: none; font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    input:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 8px rgba(59, 130, 246, 0.3); }
+
+    [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+    [data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+
+    .datetime-group { display: flex; gap: 10px; }
+
+    button#add-btn {
+        width: 100%; padding: 12px; border-radius: 12px; background: #3b82f6;
+        color: white; border: none; font-weight: bold; cursor: pointer;
+        margin-top: 5px; transition: background 0.3s ease;
+    }
+    button#add-btn:hover { background: #2563eb; transform: translateY(-1px); }
+
+    .filter-section {
+        border-top: 1px solid var(--input-border);
+        padding-top: 15px;
+        margin-top: 10px;
+    }
+
+    .filter-label { font-size: 12px; color: var(--texto-secundario); margin-bottom: 8px; display: block; }
+
+    .chip-container { display: flex; gap: 8px; }
+
+    .filter-chip {
+        flex: 1; padding: 8px; border-radius: 8px; border: none;
+        font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s ease;
+        background-color: var(--chip-inativo); color: var(--text-chip-inativo);
+    }
+
+    .filter-chip.active[data-filter="alta"] { background-color: var(--bg-alta); color: var(--text-alta); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .filter-chip.active[data-filter="media"] { background-color: var(--bg-media); color: var(--text-media); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .filter-chip.active[data-filter="baixa"] { background-color: var(--bg-baixa); color: var(--text-baixa); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .filter-chip:hover:not(.active) { opacity: 0.8; }
+
+    ul {
+        list-style: none; padding: 0; margin-top: 20px;
+        max-height: 400px; overflow-y: auto; column-width: 250px; column-gap: 20px;
+    }
+
+    ul::-webkit-scrollbar { width: 6px; }
+    ul::-webkit-scrollbar-thumb { background: var(--input-border); border-radius: 10px; }
+
+    li {
+        padding: 12px 15px; border-radius: 12px; margin-bottom: 15px;
+        display: flex; justify-content: space-between; align-items: center;
+        border: 1px solid rgba(0,0,0,0.05); break-inside: avoid;
+        animation: fadeIn 0.3s ease; transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .alta { background-color: var(--bg-alta); color: var(--text-alta); }
+    .media { background-color: var(--bg-media); color: var(--text-media); }
+    .baixa { background-color: var(--bg-baixa); color: var(--text-baixa); }
+
+    .concluida { text-decoration: line-through; opacity: 0.4; filter: grayscale(1); }
+
+    .task-content { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
+    .task-title { font-weight: 500; word-break: break-word; }
+    .task-datetime { font-size: 11px; opacity: 0.85; font-weight: bold; }
+
+    .actions { display: flex; gap: 5px; margin-left: 10px; }
+    .actions button {
+        border: none; background: var(--btn-acao); padding: 6px; 
+        border-radius: 8px; cursor: pointer; transition: 0.2s;
+    }
+    .actions button:hover { background: var(--btn-acao-hover); }
+
+</style>
+</head>
+<body>
+
+<div class="container" id="mainContainer">
+    <div class="header-container">
+        <div class="title-group">
+            <h1>To-Do-App</h1>
+            <span class="task-counter" id="taskCountDisplay">0</span>
+        </div>
+        <button class="theme-btn" id="themeToggle" onclick="toggleTheme()" title="Mudar Tema">🌙</button>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="taskInput" placeholder="Nova tarefa...">
+        
+        <div class="datetime-group">
+            <input type="date" id="taskDate">
+            <input type="time" id="taskTime">
+        </div>
+
+        <select id="priority">
+            <option value="baixa">Prioridade Baixa</option>
+            <option value="media">Prioridade Média</option>
+            <option value="alta">Prioridade Alta</option>
+        </select>
+
+        <button id="add-btn" onclick="addTask()">Adicionar</button>
+    </div>
+
+    <div class="filter-section">
+        <label class="filter-label">🔍 Mostrar tarefas:</label>
+        <div class="chip-container" id="filterContainer">
+            <button class="filter-chip active" data-filter="baixa" onclick="toggleFilter(this)">Baixa</button>
+            <button class="filter-chip active" data-filter="media" onclick="toggleFilter(this)">Média</button>
+            <button class="filter-chip active" data-filter="alta" onclick="toggleFilter(this)">Alta</button>
+        </div>
+    </div>
+
+    <ul id="taskList"></ul>
+</div>
+
+<script>
+let tasks = [];
+let activeFilters = new Set(['baixa', 'media', 'alta']);
+
+const priorityWeights = {
+    'alta': 3,
+    'media': 2,
+    'baixa': 1
+};
+
+window.onload = () => {
+    // Define a data mínima no seletor para HOJE
+    const today = new Date().toLocaleDateString('en-CA'); 
+    document.getElementById('taskDate').setAttribute('min', today);
+};
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const themeBtn = document.getElementById('themeToggle');
+    if (html.getAttribute('data-theme') === 'light') {
+        html.setAttribute('data-theme', 'dark');
+        themeBtn.textContent = '☀️';
+    } else {
+        html.setAttribute('data-theme', 'light');
+        themeBtn.textContent = '🌙';
+    }
+}
+
+function toggleFilter(btnElement) {
+    const filterValue = btnElement.getAttribute('data-filter');
+    btnElement.classList.toggle('active');
+    
+    if (activeFilters.has(filterValue)) {
+        activeFilters.delete(filterValue);
+    } else {
+        activeFilters.add(filterValue);
+    }
+    renderTasks();
+}
+
+function addTask() {
+    const input = document.getElementById("taskInput");
+    const dateInput = document.getElementById("taskDate");
+    const timeInput = document.getElementById("taskTime");
+    const priority = document.getElementById("priority").value;
+
+    if (input.value.trim() === "") return;
+
+    // Verificação de data retroativa (Trava lógica)
+    const dataDigitada = dateInput.value;
+    const dataDeHoje = new Date().toLocaleDateString('en-CA');
+    
+    if (dataDigitada && dataDigitada < dataDeHoje) {
+        alert("Não é possível agendar tarefas para o passado. 🕰️");
+        dateInput.value = "";
+        return;
+    }
+
+    const agora = new Date();
+    const dataFinal = dateInput.value || agora.toLocaleDateString('en-CA');
+    
+    let horaFinal = timeInput.value;
+    if (!horaFinal) {
+        const horas = String(agora.getHours()).padStart(2, '0');
+        const minutos = String(agora.getMinutes()).padStart(2, '0');
+        horaFinal = `${horas}:${minutos}`;
+    }
+
+    const newTask = {
+        id: Date.now(),
+        title: input.value,
+        date: dataFinal,
+        time: horaFinal,
+        priority: priority,
+        completed: false,
+        timestamp: new Date(`${dataFinal}T${horaFinal}`).getTime()
+    };
+
+    tasks.push(newTask);
+    
+    input.value = "";
+    dateInput.value = "";
+    timeInput.value = "";
+    input.focus();
+    
+    // Ativa o filtro da prioridade automaticamente se estiver desativado
+    if (!activeFilters.has(priority)) {
+        document.querySelector(`.filter-chip[data-filter="${priority}"]`).classList.add('active');
+        activeFilters.add(priority);
+    }
+
+    renderTasks();
+}
+
+function renderTasks() {
+    const listElement = document.getElementById("taskList");
+    listElement.innerHTML = "";
+
+    // 1. Filtra
+    let filteredTasks = tasks.filter(t => activeFilters.has(t.priority));
+
+    // 2. Ordena: Prioridade primeiro, depois Data Futura no topo
+    filteredTasks.sort((a, b) => {
+        // Se as prioridades forem diferentes, ordena pelo peso (Alta > Media > Baixa)
+        if (priorityWeights[b.priority] !== priorityWeights[a.priority]) {
+            return priorityWeights[b.priority] - priorityWeights[a.priority];
+        }
+        // Se as prioridades forem iguais, coloca a data mais DISTANTE no topo (b - a)
+        return b.timestamp - a.timestamp; 
+    });
+
+    // 3. Renderiza
+    filteredTasks.forEach(task => {
+        const li = document.createElement("li");
+        li.className = `${task.priority} ${task.completed ? 'concluida' : ''}`;
+
+        const [ano, mes, dia] = task.date.split("-");
+        const dataFormatada = `${dia}/${mes}/${ano} às ${task.time}`;
+
+        li.innerHTML = `
+            <div class="task-content">
+                <span class="task-title">${task.title}</span>
+                <span class="task-datetime">📅 ${dataFormatada}</span>
+            </div>
+            <div class="actions">
+                <button onclick="toggleTask(${task.id})" title="Concluir">✔️</button>
+                <button onclick="deleteTask(this, ${task.id})" title="Excluir">🗑️</button>
+            </div>
+        `;
+        listElement.appendChild(li);
+    });
+
+    updateUI();
+}
+
+function toggleTask(id) {
+    const task = tasks.find(t => t.id === id);
+    if (task) task.completed = !task.completed;
+    renderTasks();
+}
+
+function deleteTask(btnElement, id) {
+    btnElement.disabled = true;
+    const li = btnElement.parentElement.parentElement;
+    li.style.opacity = '0';
+    li.style.transform = 'scale(0.9)';
+    
+    setTimeout(() => {
+        tasks = tasks.filter(t => t.id !== id);
+        renderTasks();
+    }, 250);
+}
+
+function updateUI() {
+    const display = document.getElementById("taskCountDisplay");
+    if (activeFilters.size === 3) {
+        display.textContent = tasks.length;
+    } else {
+        const visiveis = tasks.filter(t => activeFilters.has(t.priority)).length;
+        display.textContent = `${visiveis} de ${tasks.length}`;
+    }
+    
+    const container = document.getElementById("mainContainer");
+    container.style.maxWidth = tasks.length > 5 ? "750px" : "450px";
+}
+</script>
+</body>
+</html>
